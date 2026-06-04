@@ -187,16 +187,8 @@ function checkMemoryMatch() {
     memoryScores[memoryCurrentPlayer] += 2;
     memoryHandCards[memoryCurrentPlayer] = null;
 
-    // カードをしゅっと消す
-    [i1, i2].forEach(i => {
-      const el = document.getElementById(`mcard-${i}`);
-      if (el) {
-        el.style.transition = 'opacity 0.4s, transform 0.4s';
-        el.style.opacity = '0';
-        el.style.transform = 'scale(0.5)';
-        setTimeout(() => { el.style.visibility = 'hidden'; }, 400);
-      }
-    });
+    // カードを手札エリアへシュッと飛ばす
+    flyCardsToHand(i1, i2, memoryCurrentPlayer);
 
     memoryFlipped = [];
     memoryLocked = false;
@@ -204,7 +196,7 @@ function checkMemoryMatch() {
 
     // 全部マッチしたか確認
     if (memoryCards.every(c => c.matched)) {
-      setTimeout(showMemoryResult, 600);
+      setTimeout(showMemoryResult, 700);
     }
   } else {
     // ミスマッチ → 裏に戻す
@@ -221,6 +213,36 @@ function checkMemoryMatch() {
     memoryLocked = false;
     updateMemoryHeader();
   }
+}
+
+function flyCardsToHand(i1, i2, playerIndex) {
+  const handEl = document.getElementById(`player-hand-${playerIndex}`);
+  const handRect = handEl ? handEl.getBoundingClientRect() : null;
+
+  [i1, i2].forEach((cardIdx, order) => {
+    const el = document.getElementById(`mcard-${cardIdx}`);
+    if (!el) return;
+
+    const cardRect = el.getBoundingClientRect();
+    const fromX = cardRect.left + cardRect.width  / 2;
+    const fromY = cardRect.top  + cardRect.height / 2;
+    const toX   = handRect ? handRect.left + handRect.width  / 2 : fromX;
+    const toY   = handRect ? handRect.top  + handRect.height / 2 : fromY;
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+
+    el.style.position   = 'relative';
+    el.style.zIndex     = '60';
+    el.style.transition = 'none';
+    el.style.transform  = '';
+
+    setTimeout(() => {
+      el.style.transition = `transform 0.42s ease-in, opacity 0.38s ease-in`;
+      el.style.transform  = `translate(${dx}px, ${dy}px) scale(0.2)`;
+      el.style.opacity    = '0';
+      setTimeout(() => { el.style.visibility = 'hidden'; }, 430);
+    }, order * 70);
+  });
 }
 
 function showMemoryResult() {
