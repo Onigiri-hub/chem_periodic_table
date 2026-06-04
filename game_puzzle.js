@@ -1,0 +1,343 @@
+let puzzleElements = [];
+let puzzleStyle = 'drag';
+let puzzlePeriod = '4';
+let puzzleTimer = null;
+let puzzleSeconds = 0;
+let puzzlePlaced = 0;
+
+function startPuzzle() {
+  puzzlePeriod = document.getElementById('puzzle-period').value;
+  puzzleStyle = document.getElementById('puzzle-style').value;
+  const cfg = parsePeriodSetting(puzzlePeriod);
+  puzzleElements = getElementsByPeriod(cfg.max, cfg.ln, cfg.ac);
+  puzzlePlaced = 0;
+  puzzleSeconds = 0;
+  buildPeriodicTable('periodic-table-container', puzzleStyle);
+  const sidebar = document.querySelector('#screen-puzzle-game .puzzle-sidebar');
+  if (puzzleStyle === 'drag') {
+    sidebar.style.display = '';
+    buildSidebar();
+  } else {
+    sidebar.style.display = 'none';
+    document.getElementById('element-list').innerHTML = '';
+  }
+  showScreen('screen-puzzle-game');
+  startPuzzleTimer();
+}
+
+function startPuzzleTimer() {
+  clearInterval(puzzleTimer);
+  puzzleSeconds = 0;
+  updateTimerDisplay();
+  puzzleTimer = setInterval(() => {
+    puzzleSeconds++;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const h = String(Math.floor(puzzleSeconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((puzzleSeconds % 3600) / 60)).padStart(2, '0');
+  const s = String(puzzleSeconds % 60).padStart(2, '0');
+  const t = `${h}:${m}:${s}`;
+  const el = document.getElementById('puzzle-timer');
+  if (el) el.textContent = `Time: ${t}`;
+}
+
+function formatTime(sec) {
+  const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+  const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
+// 周期表構造: [period][group] に元素が入る
+// ランタノイド・アクチノイドは別行
+const PT_LAYOUT = {
+  1:  [1, 18],
+  2:  [1, 2, 13, 14, 15, 16, 17, 18],
+  3:  [1, 2, 13, 14, 15, 16, 17, 18],
+  4:  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+  5:  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+  6:  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+  7:  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18],
+};
+
+function buildPeriodicTable(containerId, style) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const table = document.createElement('div');
+  table.className = 'periodic-table';
+  container.appendChild(table);
+
+  const cfg = parsePeriodSetting(puzzlePeriod);
+
+  // 元素をperiod+groupでマップ化
+  const elementMap = {};
+  puzzleElements.forEach(el => {
+    if (el.category !== 'lanthanide' && el.category !== 'actinide') {
+      elementMap[`${el.period}-${el.group}`] = el;
+    }
+  });
+
+  // 7周期分のグリッド
+  const maxPeriod = cfg.max;
+  for (let period = 1; period <= maxPeriod; period++) {
+    for (let group = 1; group <= 18; group++) {
+      const cell = document.createElement('div');
+      const el = elementMap[`${period}-${group}`];
+
+      if (!el) {
+        // 空セル
+        cell.className = 'pt-cell empty';
+        // 第3族のランタノイド・アクチノイドプレースホルダー
+        if (group === 3 && (period === 6 || period === 7)) {
+          cell.className = 'pt-cell';
+          cell.style.background = '#555';
+          cell.style.color = '#fff';
+          cell.style.fontSize = '0.55rem';
+          cell.style.fontWeight = '700';
+          cell.innerHTML = period === 6 ? 'Ln<br>→' : 'Ac<br>→';
+          cell.style.borderColor = '#333';
+        }
+      } else {
+        // 対象元素セル
+        cell.dataset.n = el.n;
+        cell.dataset.symbol = el.symbol;
+        cell.dataset.period = period;
+        cell.dataset.group = group;
+
+        if (style === 'drag') {
+          cell.className = 'pt-cell target';
+          cell.id = `cell-${el.n}`;
+          cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag-over'); });
+          cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+          cell.addEventListener('drop', e => onDrop(e, el));
+        } else {
+          // 入力モード
+          cell.className = 'pt-cell target';
+          cell.id = `cell-${el.n}`;
+          cell.tabIndex = 0;
+          cell.addEventListener('click', () => openInput(cell, el));
+        }
+      }
+      table.appendChild(cell);
+    }
+  }
+
+  // ランタノイド行
+  if (cfg.ln) {
+    const lnElements = puzzleElements.filter(e => e.category === 'lanthanide');
+    appendFRow(table, 'Ln →', lnElements, 'ln', style);
+  }
+  // アクチノイド行
+  if (cfg.ac) {
+    const acElements = puzzleElements.filter(e => e.category === 'actinide');
+    appendFRow(table, 'Ac →', acElements, 'ac', style);
+  }
+}
+
+function appendFRow(table, label, elements, prefix, style) {
+  // ラベル（2列分）
+  const labelCell = document.createElement('div');
+  labelCell.className = prefix === 'ln' ? 'ln-row-label' : 'ac-row-label';
+  labelCell.textContent = label;
+  labelCell.style.gridColumn = '1 / 3';
+  table.appendChild(labelCell);
+
+  // 14個分（57-71 or 89-103）の空白3列目 + 要素14個
+  // 列 3〜16 に対応させる
+  for (let i = 0; i < 14; i++) {
+    const el = elements[i];
+    const cell = document.createElement('div');
+    if (!el) {
+      cell.className = 'pt-cell empty';
+    } else {
+      cell.dataset.n = el.n;
+      cell.dataset.symbol = el.symbol;
+      cell.id = `cell-${el.n}`;
+      if (style === 'drag') {
+        cell.className = 'pt-cell target';
+        cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag-over'); });
+        cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+        cell.addEventListener('drop', e => onDrop(e, el));
+      } else {
+        cell.className = 'pt-cell target';
+        cell.tabIndex = 0;
+        cell.addEventListener('click', () => openInput(cell, el));
+      }
+    }
+    table.appendChild(cell);
+  }
+  // 残り2列を空白で埋める（18列グリッドに合わせる）
+  for (let i = 0; i < 2; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'pt-cell empty';
+    table.appendChild(empty);
+  }
+}
+
+// ドラッグ&ドロップ
+let dragEl = null;
+
+function buildSidebar() {
+  const sidebar = document.getElementById('element-list');
+  sidebar.innerHTML = '';
+  const shuffled = [...puzzleElements].sort(() => Math.random() - 0.5);
+  shuffled.forEach(el => {
+    const card = document.createElement('div');
+    card.className = 'sidebar-card';
+    card.id = `side-${el.n}`;
+    card.textContent = el.symbol;
+    card.draggable = true;
+    card.dataset.n = el.n;
+    card.addEventListener('dragstart', e => {
+      dragEl = el;
+      card.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', el.n);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    sidebar.appendChild(card);
+  });
+}
+
+function onDrop(e, targetEl) {
+  e.preventDefault();
+  const cell = document.getElementById(`cell-${targetEl.n}`);
+  cell.classList.remove('drag-over');
+  if (!dragEl) return;
+
+  if (dragEl.n === targetEl.n) {
+    // 正解！
+    placedCorrect(cell, dragEl);
+  } else {
+    // 不正解 → しゅっと戻る
+    const sideCard = document.getElementById(`side-${dragEl.n}`);
+    if (sideCard) {
+      sideCard.classList.add('flyback');
+      setTimeout(() => sideCard.classList.remove('flyback'), 300);
+    }
+  }
+  dragEl = null;
+}
+
+function placedCorrect(cell, el) {
+  // サイドバーから削除
+  const sideCard = document.getElementById(`side-${el.n}`);
+  if (sideCard) sideCard.remove();
+
+  // セルを埋める
+  cell.className = 'pt-cell filled';
+  cell.style.background = CATEGORY_COLORS[el.category] || '#eee';
+  cell.style.border = '1.5px solid rgba(0,0,0,0.15)';
+  cell.innerHTML = `
+    <span class="cell-num">${el.n}</span>
+    <span class="cell-symbol">${el.symbol}</span>
+    <span class="cell-name">${el.name}</span>
+  `;
+  cell.classList.add('sparkle');
+  setTimeout(() => cell.classList.remove('sparkle'), 500);
+
+  puzzlePlaced++;
+  if (puzzlePlaced >= puzzleElements.length) {
+    onPuzzleComplete();
+  }
+}
+
+// 入力モード
+let activeInputCell = null;
+let activeInputEl = null;
+
+function openInput(cell, el) {
+  if (activeInputCell) {
+    activeInputCell.innerHTML = '';
+    activeInputCell.className = 'pt-cell target';
+  }
+  activeInputCell = cell;
+  activeInputEl = el;
+  cell.innerHTML = '';
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.maxLength = 3;
+  inp.style.cssText = 'width:100%; border:none; background:transparent; text-align:center; font-size:0.85rem; font-weight:700; outline:none;';
+  cell.appendChild(inp);
+  inp.focus();
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      checkInput(inp.value, cell, el);
+    } else if (e.key === 'Escape') {
+      cell.innerHTML = '';
+      cell.className = 'pt-cell target';
+      activeInputCell = null;
+    }
+  });
+}
+
+function checkInput(val, cell, el) {
+  const normalized = val.trim().toLowerCase();
+  const correct = el.symbol.toLowerCase();
+  if (normalized === correct) {
+    // 正解
+    activeInputCell = null;
+    placedCorrect(cell, el);
+  } else {
+    // 不正解 → しゅっと消える
+    const inp = cell.querySelector('input');
+    if (inp) {
+      inp.classList.add('flyback');
+      setTimeout(() => {
+        inp.value = '';
+        inp.classList.remove('flyback');
+        inp.focus();
+      }, 300);
+    }
+  }
+}
+
+function quitPuzzle() {
+  clearInterval(puzzleTimer);
+  showScreen('screen-title');
+}
+
+function onPuzzleComplete() {
+  clearInterval(puzzleTimer);
+  const timeStr = formatTime(puzzleSeconds);
+  saveRanking(puzzlePeriod, puzzleStyle, puzzleSeconds);
+  document.getElementById('complete-time').textContent = timeStr;
+  document.getElementById('complete-time2').textContent = timeStr;
+  showScreen('screen-puzzle-complete');
+}
+
+// ランキング
+function saveRanking(period, style, seconds) {
+  const key = `ranking_${period}_${style}`;
+  const saved = JSON.parse(localStorage.getItem(key) || '[]');
+  saved.push(seconds);
+  saved.sort((a, b) => a - b);
+  localStorage.setItem(key, JSON.stringify(saved.slice(0, 10)));
+}
+
+function showRanking() {
+  const key = `ranking_${puzzlePeriod}_${puzzleStyle}`;
+  const saved = JSON.parse(localStorage.getItem(key) || '[]');
+  const list = document.getElementById('ranking-list');
+  list.innerHTML = '';
+
+  if (saved.length === 0) {
+    list.innerHTML = '<p style="color:#888;">記録なし</p>';
+  } else {
+    saved.slice(0, 3).forEach((sec, i) => {
+      const item = document.createElement('div');
+      item.className = `ranking-item ${i === 0 ? 'first' : ''}`;
+      const isNew = i === 0 && sec === puzzleSeconds;
+      item.innerHTML = `
+        ${i === 0 && isNew ? '<span class="rank-arrow">➡</span>' : '<span style="min-width:24px"></span>'}
+        <span class="rank-num">${i+1}位</span>
+        <span class="rank-time">${formatTime(sec)}</span>
+        ${isNew ? '<span class="new-record">New Record!</span>' : ''}
+      `;
+      list.appendChild(item);
+    });
+  }
+  showScreen('screen-ranking');
+}

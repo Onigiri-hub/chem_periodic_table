@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>元素学習ゲーム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 画面1: タイトルメニュー -->
+<div id="screen-title" class="screen active">
+  <div class="title-container">
+    <h1 class="app-title">元素学習ゲーム</h1>
+    <div class="menu-cards">
+      <div class="menu-card" onclick="showScreen('screen-puzzle-settings')">
+        <div class="menu-card-icon">⚗️</div>
+        <div class="menu-card-title">周期表パズル</div>
+        <div class="menu-card-desc">元素を正しい位置に配置しよう</div>
+      </div>
+      <div class="menu-card" onclick="showScreen('screen-memory-settings')">
+        <div class="menu-card-icon">🧩</div>
+        <div class="menu-card-title">元素神経衰弱</div>
+        <div class="menu-card-desc">元素記号と名前のペアを探そう</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 画面2: 周期表パズル設定 -->
+<div id="screen-puzzle-settings" class="screen">
+  <div class="settings-container">
+    <div class="back-btn" onclick="showScreen('screen-title')">← もどる</div>
+    <div class="settings-card">
+      <h2>周期表パズル</h2>
+    </div>
+    <div class="settings-form">
+      <div class="setting-row">
+        <label>周期数</label>
+        <select id="puzzle-period">
+          <option value="3">3周期まで</option>
+          <option value="4" selected>4周期まで</option>
+          <option value="5">5周期まで</option>
+          <option value="6">6周期まで</option>
+          <option value="7">7周期まで</option>
+          <option value="6+Ac">6+Ac周期まで</option>
+          <option value="7+La+Ac">7+La+Ac周期まで</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>スタイル</label>
+        <select id="puzzle-style">
+          <option value="drag">穴埋めパズル</option>
+          <option value="type">自分で入力</option>
+        </select>
+      </div>
+      <button class="start-btn" onclick="startPuzzle()">START</button>
+    </div>
+  </div>
+</div>
+
+<!-- 画面3: 周期表パズル ゲーム -->
+<div id="screen-puzzle-game" class="screen">
+  <button class="quit-btn" onclick="quitPuzzle()">やめる</button>
+  <div class="puzzle-game-layout">
+    <div class="puzzle-main">
+      <div id="periodic-table-container"></div>
+    </div>
+    <div class="puzzle-sidebar">
+      <div id="element-list"></div>
+    </div>
+  </div>
+  <div class="timer-display" id="puzzle-timer">Time: 00:00:00</div>
+</div>
+
+<!-- 画面4: 周期表パズル Complete -->
+<div id="screen-puzzle-complete" class="screen">
+  <div class="puzzle-game-layout dimmed">
+    <div class="puzzle-main">
+      <div id="periodic-table-complete"></div>
+    </div>
+    <div class="puzzle-sidebar"></div>
+  </div>
+  <div class="timer-display">Time: <span id="complete-time">00:00:00</span></div>
+  <div class="overlay-modal">
+    <h2 class="complete-title">Complete!</h2>
+    <p class="complete-time-label">Time: <span id="complete-time2">00:00:00</span></p>
+    <button class="dark-btn" onclick="showRanking()">ランキングをみる</button>
+  </div>
+</div>
+
+<!-- 画面5: ランキング -->
+<div id="screen-ranking" class="screen">
+  <div class="ranking-container">
+    <div class="settings-card">
+      <h2>周期表パズル<br>ランキング</h2>
+    </div>
+    <div id="ranking-list"></div>
+    <button class="dark-btn" onclick="showScreen('screen-title')">MENUへ</button>
+  </div>
+</div>
+
+<!-- 画面6: 元素神経衰弱 設定 -->
+<div id="screen-memory-settings" class="screen">
+  <div class="settings-container">
+    <div class="back-btn" onclick="showScreen('screen-title')">← もどる</div>
+    <div class="settings-card">
+      <h2>元素神経衰弱</h2>
+    </div>
+    <div class="settings-form">
+      <div class="setting-row">
+        <label>周期数</label>
+        <select id="memory-period">
+          <option value="3">3周期まで</option>
+          <option value="4" selected>4周期まで</option>
+          <option value="5">5周期まで</option>
+          <option value="6">6周期まで</option>
+          <option value="7">7周期まで</option>
+          <option value="6+Ac">6+Ac周期まで</option>
+          <option value="7+La+Ac">7+La+Ac周期まで</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>プレイヤー数</label>
+        <select id="memory-players">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </div>
+      <button class="start-btn" onclick="startMemory()">START</button>
+    </div>
+  </div>
+</div>
+
+<!-- 画面7: 元素神経衰弱 ゲーム -->
+<div id="screen-memory-game" class="screen">
+  <button class="quit-btn" onclick="showScreen('screen-title')">やめる</button>
+  <div class="memory-header" id="memory-header"></div>
+  <div class="memory-board-wrap">
+    <div id="memory-board" class="memory-board"></div>
+  </div>
+</div>
+
+<!-- 画面8: 元素神経衰弱 結果 -->
+<div id="screen-memory-result" class="screen">
+  <div class="memory-header" id="memory-result-header"></div>
+  <div class="overlay-modal">
+    <h2 id="result-title" class="complete-title">Complete!</h2>
+    <div style="display:flex; gap:1rem; margin-top:2rem;">
+      <button class="dark-btn" onclick="restartMemory()">もう一戦</button>
+      <button class="dark-btn" onclick="showScreen('screen-title')">MENUに戻る</button>
+    </div>
+  </div>
+</div>
+
+<script src="data_elements.js"></script>
+<script src="game_puzzle.js"></script>
+<script src="game_memory.js"></script>
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
