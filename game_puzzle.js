@@ -197,8 +197,109 @@ function buildSidebar() {
       e.dataTransfer.setData('text/plain', el.n);
     });
     card.addEventListener('dragend', () => card.classList.remove('dragging'));
+    card.addEventListener('touchstart', e => onTouchStart(e, el, card), { passive: false });
     sidebar.appendChild(card);
   });
+}
+
+// === タッチ操作対応 ===
+let touchDragData = null;
+let touchGhost = null;
+let touchHighlightedCell = null;
+let touchOffsetX = 0;
+let touchOffsetY = 0;
+
+function onTouchStart(e, el, card) {
+  e.preventDefault();
+  dragEl = el;
+  const touch = e.touches[0];
+  const rect = card.getBoundingClientRect();
+  touchOffsetX = touch.clientX - rect.left;
+  touchOffsetY = touch.clientY - rect.top;
+
+  touchGhost = card.cloneNode(true);
+  Object.assign(touchGhost.style, {
+    position: 'fixed',
+    width: rect.width + 'px',
+    height: rect.height + 'px',
+    left: rect.left + 'px',
+    top: rect.top + 'px',
+    opacity: '0.85',
+    pointerEvents: 'none',
+    zIndex: '9999',
+    margin: '0',
+    transform: 'scale(1.1)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    transition: 'none',
+  });
+  document.body.appendChild(touchGhost);
+  card.style.opacity = '0.3';
+  touchDragData = { el, card };
+
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('touchend', onTouchEnd, { passive: false });
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  if (!touchGhost) return;
+  const touch = e.touches[0];
+  touchGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
+  touchGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+
+  if (touchHighlightedCell) {
+    touchHighlightedCell.classList.remove('drag-over');
+    touchHighlightedCell = null;
+  }
+  touchGhost.style.visibility = 'hidden';
+  const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchGhost.style.visibility = '';
+  if (elemBelow) {
+    const cell = elemBelow.closest('.pt-cell.target');
+    if (cell) {
+      cell.classList.add('drag-over');
+      touchHighlightedCell = cell;
+    }
+  }
+}
+
+function onTouchEnd(e) {
+  document.removeEventListener('touchmove', onTouchMove);
+  document.removeEventListener('touchend', onTouchEnd);
+  if (!touchGhost) return;
+
+  const touch = e.changedTouches[0];
+  if (touchHighlightedCell) touchHighlightedCell.classList.remove('drag-over');
+
+  touchGhost.style.visibility = 'hidden';
+  const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchGhost.remove();
+  touchGhost = null;
+
+  if (touchDragData) touchDragData.card.style.opacity = '';
+
+  if (elemBelow && dragEl) {
+    const cell = elemBelow.closest('.pt-cell.target');
+    if (cell && cell.dataset.n) {
+      const targetN = parseInt(cell.dataset.n);
+      const targetEl = puzzleElements.find(e => e.n === targetN);
+      if (targetEl) {
+        if (dragEl.n === targetEl.n) {
+          placedCorrect(cell, dragEl);
+        } else {
+          const sideCard = document.getElementById(`side-${dragEl.n}`);
+          if (sideCard) {
+            sideCard.classList.add('flyback');
+            setTimeout(() => sideCard.classList.remove('flyback'), 300);
+          }
+        }
+      }
+    }
+  }
+
+  touchDragData = null;
+  touchHighlightedCell = null;
+  dragEl = null;
 }
 
 function onDrop(e, targetEl) {

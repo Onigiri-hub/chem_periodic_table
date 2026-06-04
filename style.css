@@ -109,6 +109,7 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   min-width: 80px;
+  white-space: nowrap;
 }
 .setting-row select {
   padding: 0.6rem 2rem 0.6rem 1rem;
@@ -481,9 +482,90 @@ body {
   align-items: stretch;
 }
 
-/* --- レスポンシブ対応 --- */
+/* --- タッチ操作 共通 --- */
+.menu-card, .start-btn, .dark-btn, .quit-btn, .back-btn,
+.sidebar-card, .memory-card, .pt-cell.target, .setting-row select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-card {
+  -webkit-user-select: none;
+}
+
+/* --- レスポンシブ対応 (タブレット) --- */
 @media (max-width: 900px) {
   .puzzle-sidebar { width: 60px; }
   .pt-cell { width: 34px; height: 34px; }
   .periodic-table { min-width: 640px; }
+}
+
+/* --- スマホ対応 --- */
+@media (max-width: 680px) {
+  /* パズルゲーム: サイドバーを下部横列に */
+  .puzzle-game-layout {
+    flex-direction: column;
+    height: 100vh;
+  }
+  .puzzle-main {
+    flex: 1;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+  .puzzle-sidebar {
+    width: 100%;
+    height: 72px;
+    min-height: 72px;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-left: none;
+    border-top: 1px solid #ccc;
+    padding: 8px 10px;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .sidebar-card {
+    min-width: 48px;
+    min-height: 52px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+  }
+  /* タイマーをサイドバーと被らないよう上部へ */
+  .timer-display {
+    top: 8px;
+    bottom: auto;
+    right: 16px;
+  }
+  /* 神経衰弱ボードのパディング縮小 */
+  .memory-board-wrap {
+    padding: 120px 60px 75px;
+  }
+  /* プレイヤーエリアをコンパクトに */
+  .player-hand {
+    width: 55px;
+    height: 62px;
+  }
+  .player-badge {
+    font-size: 0.7rem;
+    padding: 2px 10px;
+  }
+  .player-score {
+    font-size: 0.85rem;
+  }
+  /* メニューカード */
+  .menu-card {
+    width: 280px;
+    padding: 1.5rem 2rem;
+  }
+  /* オーバーレイモーダル */
+  .overlay-modal {
+    padding: 2rem 2.5rem;
+    width: 90%;
+  }
+  .complete-title {
+    font-size: 2.5rem;
+  }
 }
