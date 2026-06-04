@@ -143,6 +143,19 @@ const CATEGORY_LABELS = {
   actinide:   "アクチノイド",
 };
 
+function getElementsForMemory(setting) {
+  switch (setting) {
+    case '1-3':      return ELEMENTS.filter(el => el.period <= 3);
+    case '4':        return ELEMENTS.filter(el => el.period === 4 && el.category !== 'lanthanide' && el.category !== 'actinide');
+    case '5':        return ELEMENTS.filter(el => el.period === 5 && el.category !== 'lanthanide' && el.category !== 'actinide');
+    case '6':        return ELEMENTS.filter(el => el.period === 6 && el.category !== 'lanthanide' && el.category !== 'actinide');
+    case '7':        return ELEMENTS.filter(el => el.period === 7 && el.category !== 'lanthanide' && el.category !== 'actinide');
+    case 'lanthanide': return ELEMENTS.filter(el => el.category === 'lanthanide');
+    case 'actinide':   return ELEMENTS.filter(el => el.category === 'actinide');
+    default:         return ELEMENTS.filter(el => el.period <= 3);
+  }
+}
+
 function getElementsByPeriod(maxPeriod, includeLanthanide, includeActinide) {
   return ELEMENTS.filter(el => {
     if (el.period > maxPeriod) return false;

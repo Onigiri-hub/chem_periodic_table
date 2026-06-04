@@ -29,14 +29,7 @@ function restartMemory() {
 }
 
 function initMemoryGame() {
-  const cfg = parsePeriodSetting(memoryPeriod);
-  let elements = getElementsByPeriod(cfg.max, cfg.ln, cfg.ac);
-
-  // 6周期以上なら54組に制限
-  const needsLimit = ['6','7','6+Ac','7+La+Ac'].includes(memoryPeriod);
-  if (needsLimit && elements.length > 54) {
-    elements = shuffle([...elements]).slice(0, 54);
-  }
+  const elements = getElementsForMemory(memoryPeriod);
 
   // ペア作成: 記号カード + 名前カード
   const pairs = [];
@@ -112,17 +105,18 @@ function buildMemoryBoard() {
   board.innerHTML = '';
 
   const total = memoryCards.length;
-  // グリッド列数を画面幅に合わせて計算
-  const cols = Math.ceil(Math.sqrt(total * 1.5));
-  board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  const CARD = 72; // 固定カードサイズ（px）
+  const GAP  = 4;
 
-  // カードサイズを計算
+  // 画面幅に収まる最大列数と、正方形レイアウトの列数を比較して小さい方を採用
   const availW = window.innerWidth - 40;
-  const availH = window.innerHeight - 180;
-  const rows = Math.ceil(total / cols);
-  const cardW = Math.min(Math.floor(availW / cols) - 4, 60);
-  const cardH = Math.min(Math.floor(availH / rows) - 4, 70);
-  const finalSize = Math.min(cardW, cardH, 60);
+  const colsByWidth  = Math.max(Math.floor(availW / (CARD + GAP)), 3);
+  const colsBySquare = Math.ceil(Math.sqrt(total * 1.5));
+  const cols = Math.min(colsBySquare, colsByWidth);
+
+  board.style.gridTemplateColumns = `repeat(${cols}, ${CARD}px)`;
+
+  const finalSize = CARD;
 
   memoryCards.forEach((c, i) => {
     const wrapper = document.createElement('div');
