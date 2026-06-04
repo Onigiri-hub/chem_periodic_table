@@ -1,0 +1,489 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'M PLUS Rounded 1c', 'Hiragino Kaku Gothic ProN', sans-serif;
+  font-weight: 900;
+  background: #EBEBEB;
+  min-height: 100vh;
+  color: #222;
+}
+
+/* --- 画面切り替え --- */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* --- タイトル画面 --- */
+.title-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+.app-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #222;
+}
+.menu-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+.menu-card {
+  background: #fff;
+  border: 2px solid #222;
+  border-radius: 20px;
+  padding: 2rem 3rem;
+  width: 320px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.menu-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+.menu-card-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.menu-card-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.3rem; }
+.menu-card-desc { font-size: 0.85rem; color: #666; }
+
+/* --- やめるボタン --- */
+.quit-btn {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  background: rgba(0,0,0,0.12);
+  color: #444;
+  border: none;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  cursor: pointer;
+  z-index: 200;
+  transition: background 0.15s;
+}
+.quit-btn:hover { background: rgba(0,0,0,0.25); }
+
+/* --- 設定画面 --- */
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  padding: 2rem;
+}
+.back-btn {
+  align-self: flex-start;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #444;
+  margin-left: 1rem;
+}
+.back-btn:hover { text-decoration: underline; }
+.settings-card {
+  background: #fff;
+  border: 2px solid #222;
+  border-radius: 20px;
+  padding: 2rem 3rem;
+  text-align: center;
+  min-width: 280px;
+}
+.settings-card h2 { font-size: 1.4rem; font-weight: 700; }
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+.setting-row label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-width: 80px;
+}
+.setting-row select {
+  padding: 0.6rem 2rem 0.6rem 1rem;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  min-width: 180px;
+  cursor: pointer;
+}
+.setting-hint {
+  font-size: 0.75rem;
+  color: #888;
+  line-height: 1.4;
+}
+
+/* --- ボタン --- */
+.start-btn {
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 0.9rem 4rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.15s, transform 0.1s;
+}
+.start-btn:hover { background: #111; transform: scale(1.02); }
+
+.dark-btn {
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 0.8rem 2.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dark-btn:hover { background: #111; }
+
+/* --- 周期表パズル ゲーム画面 --- */
+#screen-puzzle-game {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 0;
+  position: relative;
+}
+.puzzle-game-layout {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  height: calc(100vh - 40px);
+}
+.puzzle-main {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.puzzle-sidebar {
+  width: 80px;
+  background: #e0e0e0;
+  overflow-y: auto;
+  padding: 0.5rem 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 1px solid #ccc;
+}
+
+/* --- 周期表グリッド --- */
+.periodic-table {
+  display: grid;
+  grid-template-columns: repeat(18, 1fr);
+  gap: 3px;
+  min-width: 760px;
+}
+.pt-cell {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  position: relative;
+  border: 1.5px solid #ccc;
+}
+.pt-cell.empty { background: transparent; border-color: transparent; }
+.pt-cell.filled {
+  background: #fff;
+  cursor: default;
+}
+.pt-cell.target {
+  background: #f5f5f5;
+  border: 1.5px dashed #aaa;
+  cursor: pointer;
+}
+.pt-cell.target.drag-over {
+  background: #e8f0ff;
+  border-color: #6699ff;
+}
+.pt-cell .cell-num { font-size: 0.5rem; color: #888; position: absolute; top: 2px; left: 3px; }
+.pt-cell .cell-symbol { font-size: 0.9rem; font-weight: 700; }
+.pt-cell .cell-name { font-size: 0.45rem; color: #555; }
+
+/* ランタノイド・アクチノイド行 */
+.ln-row-label, .ac-row-label {
+  grid-column: 1 / 3;
+  background: #555;
+  color: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 2px;
+}
+
+/* きらりんアニメーション */
+@keyframes sparkle {
+  0%   { transform: scale(1); box-shadow: 0 0 0 rgba(255,220,0,0); }
+  40%  { transform: scale(1.25); box-shadow: 0 0 12px rgba(255,200,0,0.8); }
+  70%  { transform: scale(1.1); box-shadow: 0 0 6px rgba(255,200,0,0.4); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,200,0,0); }
+}
+.sparkle { animation: sparkle 0.5s ease; }
+
+/* しゅっアニメーション */
+@keyframes flyback {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.5) translateY(-20px); }
+}
+.flyback { animation: flyback 0.3s ease forwards; }
+
+/* サイドバーのカード */
+.sidebar-card {
+  background: #fff;
+  border-radius: 6px;
+  border: 1.5px solid #bbb;
+  padding: 4px 2px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.1s, box-shadow 0.1s;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-card:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.sidebar-card.dragging { opacity: 0.4; }
+
+/* タイマー */
+.timer-display {
+  position: fixed;
+  bottom: 8px;
+  right: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+}
+
+/* --- Complete オーバーレイ --- */
+#screen-puzzle-complete {
+  position: relative;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+.overlay-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.97);
+  border-radius: 16px;
+  padding: 3rem 4rem;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.complete-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #222;
+}
+.complete-time-label { font-size: 1rem; color: #555; }
+
+/* --- ランキング画面 --- */
+.ranking-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 3rem;
+}
+#ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: 300px;
+}
+.ranking-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.ranking-item.first { color: #222; }
+.ranking-item .rank-arrow { color: #cc0000; font-size: 1.4rem; }
+.ranking-item .new-record { color: #cc0000; font-weight: 700; margin-left: 0.5rem; }
+.ranking-item .rank-num { min-width: 40px; }
+.ranking-item .rank-time { font-family: monospace; font-size: 1.1rem; }
+
+/* --- 神経衰弱 ヘッダー --- */
+.memory-header {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  background: transparent;
+}
+.player-area {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.player-corner-tl { top: 44px; left: 8px; }
+.player-corner-tr { top: 44px; right: 8px; }
+.player-corner-bl { bottom: 8px; left: 8px; }
+.player-corner-br { bottom: 8px; right: 8px; }
+.player-badge {
+  background: #333;
+  color: #fff;
+  border-radius: 20px;
+  padding: 3px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.player-badge.active { background: #2a9d2a; }
+.player-hand {
+  width: 70px;
+  height: 80px;
+  border: 2px dashed #aaa;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #aaa;
+  position: relative;
+}
+.hand-card {
+  width: 60px;
+  height: 70px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1.5px solid rgba(0,0,0,0.2);
+}
+.player-score {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+/* --- 神経衰弱 ボード --- */
+#screen-memory-game {
+  justify-content: flex-start;
+  align-items: stretch;
+  min-height: 100vh;
+  padding-bottom: 1rem;
+}
+.memory-board-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 160px 110px;
+}
+.memory-board {
+  display: grid;
+  gap: 4px;
+}
+
+/* --- メモリーカード --- */
+.memory-card {
+  perspective: 600px;
+  cursor: pointer;
+}
+.memory-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease;
+  border-radius: 8px;
+}
+.memory-card.flipped .memory-card-inner { transform: rotateY(180deg); }
+.memory-card-front, .memory-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border: 1.5px solid rgba(0,0,0,0.15);
+}
+.memory-card-front {
+  background: #888;
+  color: transparent;
+}
+.memory-card-back {
+  background: #fff;
+  transform: rotateY(180deg);
+  font-size: 0.75rem;
+  padding: 4px;
+  text-align: center;
+}
+.memory-card-back.symbol { font-size: 1.1rem; }
+
+/* くるんアニメーション後の色付き */
+.memory-card.matched .memory-card-back { opacity: 0.7; }
+
+/* しゅっ移動アニメーション */
+@keyframes flyToHand {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.3) translate(var(--tx), var(--ty)); opacity: 0; }
+}
+.fly-to-hand { animation: flyToHand 0.5s ease forwards; }
+
+/* --- 結果画面 --- */
+#screen-memory-result {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+/* --- レスポンシブ対応 --- */
+@media (max-width: 900px) {
+  .puzzle-sidebar { width: 60px; }
+  .pt-cell { width: 34px; height: 34px; }
+  .periodic-table { min-width: 640px; }
+}
