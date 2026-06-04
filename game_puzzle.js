@@ -240,33 +240,58 @@ function buildSidebar() {
       e.dataTransfer.setData('text/plain', el.n);
     });
     card.addEventListener('dragend', () => card.classList.remove('dragging'));
-    card.addEventListener('touchstart', e => onTouchStart(e, el, card), { passive: false });
+    card.addEventListener('touchstart', e => onSidebarTouchStart(e, el, card), { passive: true });
     sidebar.appendChild(card);
   });
 }
 
-// === タッチ操作対応 ===
-let touchDragData = null;
+// === タッチ操作対応（長押し500msでドラッグ、早期移動でスクロール） ===
 let touchGhost = null;
 let touchHighlightedCell = null;
 let touchOffsetX = 0;
 let touchOffsetY = 0;
+let sidebarTouch = null;
 
-function onTouchStart(e, el, card) {
-  e.preventDefault();
-  dragEl = el;
+function onSidebarTouchStart(e, el, card) {
+  if (e.touches.length !== 1) return;
   const touch = e.touches[0];
   const rect = card.getBoundingClientRect();
-  touchOffsetX = touch.clientX - rect.left;
-  touchOffsetY = touch.clientY - rect.top;
+  clearSidebarTouch();
 
+  sidebarTouch = {
+    el, card,
+    startX: touch.clientX,
+    startY: touch.clientY,
+    curX: touch.clientX,
+    curY: touch.clientY,
+    offsetX: touch.clientX - rect.left,
+    offsetY: touch.clientY - rect.top,
+    phase: 'wait', // 'wait' | 'scroll' | 'drag'
+    timer: setTimeout(activateSidebarDrag, 250),
+  };
+
+  document.addEventListener('touchmove',   onSidebarTouchMove,   { passive: false });
+  document.addEventListener('touchend',    onSidebarTouchEnd,    { passive: false });
+  document.addEventListener('touchcancel', onSidebarTouchCancel, { passive: false });
+}
+
+function activateSidebarDrag() {
+  if (!sidebarTouch || sidebarTouch.phase !== 'wait') return;
+  const { el, card, curX, curY, offsetX, offsetY } = sidebarTouch;
+  sidebarTouch.phase = 'drag';
+
+  dragEl = el;
+  card.style.opacity = '0.3';
+  if (navigator.vibrate) navigator.vibrate(30);
+
+  const rect = card.getBoundingClientRect();
   touchGhost = card.cloneNode(true);
   Object.assign(touchGhost.style, {
     position: 'fixed',
-    width: rect.width + 'px',
+    width:  rect.width  + 'px',
     height: rect.height + 'px',
-    left: rect.left + 'px',
-    top: rect.top + 'px',
+    left:   (curX - offsetX) + 'px',
+    top:    (curY - offsetY) + 'px',
     opacity: '0.85',
     pointerEvents: 'none',
     zIndex: '9999',
@@ -276,72 +301,113 @@ function onTouchStart(e, el, card) {
     transition: 'none',
   });
   document.body.appendChild(touchGhost);
-  card.style.opacity = '0.3';
-  touchDragData = { el, card };
-
-  document.addEventListener('touchmove', onTouchMove, { passive: false });
-  document.addEventListener('touchend', onTouchEnd, { passive: false });
+  touchOffsetX = offsetX;
+  touchOffsetY = offsetY;
 }
 
-function onTouchMove(e) {
+function onSidebarTouchMove(e) {
+  if (!sidebarTouch) return;
+  const touch = e.touches[0];
+
+  if (sidebarTouch.phase === 'wait') {
+    sidebarTouch.curX = touch.clientX;
+    sidebarTouch.curY = touch.clientY;
+    const dist = Math.hypot(
+      touch.clientX - sidebarTouch.startX,
+      touch.clientY - sidebarTouch.startY
+    );
+    if (dist > 8) {
+      // 500ms 経たずに動いた → スクロールモードへ
+      clearTimeout(sidebarTouch.timer);
+      sidebarTouch.phase = 'scroll';
+    }
+    return; // preventDefault しない → ネイティブスクロール継続
+  }
+
+  if (sidebarTouch.phase === 'scroll') return;
+
+  // ─── drag フェーズ ───
   e.preventDefault();
   if (!touchGhost) return;
-  const touch = e.touches[0];
+
   touchGhost.style.left = (touch.clientX - touchOffsetX) + 'px';
-  touchGhost.style.top = (touch.clientY - touchOffsetY) + 'px';
+  touchGhost.style.top  = (touch.clientY - touchOffsetY) + 'px';
 
   if (touchHighlightedCell) {
     touchHighlightedCell.classList.remove('drag-over');
     touchHighlightedCell = null;
   }
   touchGhost.style.visibility = 'hidden';
-  const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+  const below = document.elementFromPoint(touch.clientX, touch.clientY);
   touchGhost.style.visibility = '';
-  if (elemBelow) {
-    const cell = elemBelow.closest('.pt-cell.target');
-    if (cell) {
-      cell.classList.add('drag-over');
-      touchHighlightedCell = cell;
-    }
+  if (below) {
+    const cell = below.closest('.pt-cell.target');
+    if (cell) { cell.classList.add('drag-over'); touchHighlightedCell = cell; }
   }
 }
 
-function onTouchEnd(e) {
-  document.removeEventListener('touchmove', onTouchMove);
-  document.removeEventListener('touchend', onTouchEnd);
-  if (!touchGhost) return;
+function onSidebarTouchEnd(e) {
+  removeSidebarDocListeners();
+  if (!sidebarTouch) return;
+  const { phase, card } = sidebarTouch;
+  clearTimeout(sidebarTouch.timer);
 
-  const touch = e.changedTouches[0];
   if (touchHighlightedCell) touchHighlightedCell.classList.remove('drag-over');
 
-  touchGhost.style.visibility = 'hidden';
-  const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-  touchGhost.remove();
-  touchGhost = null;
+  if (phase === 'drag') {
+    const touch = e.changedTouches[0];
+    if (touchGhost) touchGhost.style.visibility = 'hidden';
+    const below = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (touchGhost) { touchGhost.remove(); touchGhost = null; }
+    card.style.opacity = '';
 
-  if (touchDragData) touchDragData.card.style.opacity = '';
-
-  if (elemBelow && dragEl) {
-    const cell = elemBelow.closest('.pt-cell.target');
-    if (cell && cell.dataset.n) {
-      const targetN = parseInt(cell.dataset.n);
-      const targetEl = puzzleElements.find(e => e.n === targetN);
-      if (targetEl) {
-        if (dragEl.n === targetEl.n) {
-          placedCorrect(cell, dragEl);
-        } else {
-          const sideCard = document.getElementById(`side-${dragEl.n}`);
-          if (sideCard) {
-            sideCard.classList.add('flyback');
-            setTimeout(() => sideCard.classList.remove('flyback'), 300);
+    if (below && dragEl) {
+      const cell = below.closest('.pt-cell.target');
+      if (cell && cell.dataset.n) {
+        const targetN = parseInt(cell.dataset.n);
+        const targetEl = puzzleElements.find(x => x.n === targetN);
+        if (targetEl) {
+          if (dragEl.n === targetEl.n) {
+            placedCorrect(cell, dragEl);
+          } else {
+            card.classList.add('flyback');
+            setTimeout(() => card.classList.remove('flyback'), 300);
           }
         }
       }
     }
+  } else {
+    if (touchGhost) { touchGhost.remove(); touchGhost = null; }
+    if (card) card.style.opacity = '';
   }
 
-  touchDragData = null;
   touchHighlightedCell = null;
+  dragEl = null;
+  sidebarTouch = null;
+}
+
+function onSidebarTouchCancel() {
+  removeSidebarDocListeners();
+  clearSidebarTouch();
+}
+
+function removeSidebarDocListeners() {
+  document.removeEventListener('touchmove',   onSidebarTouchMove);
+  document.removeEventListener('touchend',    onSidebarTouchEnd);
+  document.removeEventListener('touchcancel', onSidebarTouchCancel);
+}
+
+function clearSidebarTouch() {
+  if (sidebarTouch) {
+    clearTimeout(sidebarTouch.timer);
+    if (sidebarTouch.card) sidebarTouch.card.style.opacity = '';
+    sidebarTouch = null;
+  }
+  if (touchGhost) { touchGhost.remove(); touchGhost = null; }
+  if (touchHighlightedCell) {
+    touchHighlightedCell.classList.remove('drag-over');
+    touchHighlightedCell = null;
+  }
   dragEl = null;
 }
 
