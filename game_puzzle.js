@@ -5,6 +5,44 @@ let puzzleTimer = null;
 let puzzleSeconds = 0;
 let puzzlePlaced = 0;
 
+// ピンチズーム状態
+let ptZoom = 1.0;
+let ptPinching = false;
+let ptPinchDist0 = 0;
+let ptZoom0 = 1.0;
+let ptZoomInitialized = false;
+
+function initPuzzleZoom() {
+  if (ptZoomInitialized) return;
+  ptZoomInitialized = true;
+  const main = document.querySelector('#screen-puzzle-game .puzzle-main');
+  if (!main) return;
+
+  function pinchDist(t) {
+    return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  }
+
+  main.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      ptPinching = true;
+      ptPinchDist0 = pinchDist(e.touches);
+      ptZoom0 = ptZoom;
+    }
+  }, { passive: true });
+
+  main.addEventListener('touchmove', e => {
+    if (!ptPinching || e.touches.length !== 2) return;
+    e.preventDefault();
+    const scale = pinchDist(e.touches) / ptPinchDist0;
+    ptZoom = Math.min(Math.max(ptZoom0 * scale, 0.3), 4.0);
+    const c = document.getElementById('periodic-table-container');
+    if (c) c.style.zoom = ptZoom;
+  }, { passive: false });
+
+  main.addEventListener('touchend', () => { ptPinching = false; });
+  main.addEventListener('touchcancel', () => { ptPinching = false; });
+}
+
 function startPuzzle() {
   puzzlePeriod = document.getElementById('puzzle-period').value;
   puzzleStyle = document.getElementById('puzzle-style').value;
@@ -13,6 +51,11 @@ function startPuzzle() {
   puzzlePlaced = 0;
   puzzleSeconds = 0;
   buildPeriodicTable('periodic-table-container', puzzleStyle);
+  // ズームをリセット
+  ptZoom = 1.0;
+  const ptc = document.getElementById('periodic-table-container');
+  if (ptc) ptc.style.zoom = '';
+  initPuzzleZoom();
   const sidebar = document.querySelector('#screen-puzzle-game .puzzle-sidebar');
   if (puzzleStyle === 'drag') {
     sidebar.style.display = '';
