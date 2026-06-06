@@ -178,8 +178,10 @@ body {
 }
 .puzzle-main {
   flex: 1;
-  overflow: auto;
-  padding: 4rem 3rem 130px;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 12rem 3rem 116px;
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -529,7 +531,7 @@ body {
 @media (max-width: 680px) {
   /* パズルゲーム: モバイル調整 */
   .puzzle-main {
-    padding: 3rem 2rem 130px;
+    padding: 10rem 2rem 116px;
   }
   /* 神経衰弱ボードのパディング縮小 */
   .memory-board-wrap {

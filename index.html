@@ -171,6 +171,9 @@
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  const noScroll = id === 'screen-puzzle-game' || id === 'screen-puzzle-complete';
+  document.documentElement.style.overflow = noScroll ? 'hidden' : '';
+  document.body.style.overflow = noScroll ? 'hidden' : '';
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
