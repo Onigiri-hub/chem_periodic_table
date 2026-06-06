@@ -267,7 +267,7 @@ function onSidebarTouchStart(e, el, card) {
     offsetX: touch.clientX - rect.left,
     offsetY: touch.clientY - rect.top,
     phase: 'wait', // 'wait' | 'scroll' | 'drag'
-    timer: setTimeout(activateSidebarDrag, 250),
+    timer: setTimeout(activateSidebarDrag, 150),
   };
 
   document.addEventListener('touchmove',   onSidebarTouchMove,   { passive: false });
