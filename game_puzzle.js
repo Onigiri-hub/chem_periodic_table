@@ -4,6 +4,7 @@ let puzzlePeriod = '4';
 let puzzleTimer = null;
 let puzzleSeconds = 0;
 let puzzlePlaced = 0;
+let submittedDocId = null;
 
 // ピンチズーム状態
 let ptZoom = 1.0;
@@ -114,6 +115,14 @@ function buildPeriodicTable(containerId, style) {
   container.appendChild(table);
 
   const cfg = parsePeriodSetting(puzzlePeriod);
+  const maxPeriod = cfg.max;
+
+  // 3周期以下はd-blockを省略して10列コンパクト表示
+  const compact = maxPeriod <= 3;
+  if (compact) {
+    table.style.gridTemplateColumns = 'repeat(10, 1fr)';
+    table.style.minWidth = '510px';
+  }
 
   // 元素をperiod+groupでマップ化
   const elementMap = {};
@@ -123,12 +132,14 @@ function buildPeriodicTable(containerId, style) {
     }
   });
 
-  // 7周期分のグリッド
-  const maxPeriod = cfg.max;
+  // コンパクト時: [1族, 2族, 空, 空, 13〜18族]の10列
+  const compactGroups = [1, 2, null, null, 13, 14, 15, 16, 17, 18];
+
   for (let period = 1; period <= maxPeriod; period++) {
-    for (let group = 1; group <= 18; group++) {
+    const groups = compact ? compactGroups : Array.from({length: 18}, (_, i) => i + 1);
+    for (const group of groups) {
       const cell = document.createElement('div');
-      const el = elementMap[`${period}-${group}`];
+      const el = group !== null ? elementMap[`${period}-${group}`] : null;
 
       if (!el) {
         // 空セル
@@ -431,7 +442,11 @@ function onDrop(e, targetEl) {
   dragEl = null;
 }
 
+const putSound = new Audio('sounds/put.mp3');
+
 function placedCorrect(cell, el) {
+  putSound.currentTime = 0;
+  putSound.play().catch(() => {});
   // サイドバーから削除
   const sideCard = document.getElementById(`side-${el.n}`);
   if (sideCard) sideCard.remove();
@@ -515,7 +530,70 @@ function onPuzzleComplete() {
   saveRanking(puzzlePeriod, puzzleStyle, puzzleSeconds);
   document.getElementById('complete-time').textContent = timeStr;
   document.getElementById('complete-time2').textContent = timeStr;
+  submittedDocId = null;
+  document.getElementById('player-name-input').value = '';
+  const btn = document.getElementById('submit-ranking-btn');
+  btn.disabled = false;
+  btn.textContent = '投稿してランキングをみる';
   showScreen('screen-puzzle-complete');
+}
+
+async function submitAndShowRanking() {
+  const nameInput = document.getElementById('player-name-input');
+  const name = nameInput.value.trim();
+  if (!name) { nameInput.focus(); return; }
+  const btn = document.getElementById('submit-ranking-btn');
+  btn.disabled = true;
+  btn.textContent = '投稿中...';
+  try {
+    submittedDocId = await submitScore(name, puzzleSeconds, puzzlePeriod, puzzleStyle);
+  } catch (e) {
+    console.error('submitScore error:', e);
+    btn.disabled = false;
+    btn.textContent = '投稿してランキングをみる';
+    return;
+  }
+  showGlobalRanking(submittedDocId);
+}
+
+async function showGlobalRanking(myDocId) {
+  const list = document.getElementById('ranking-list');
+  const styleLabel = puzzleStyle === 'drag' ? '穴埋め' : '自分で入力';
+  document.getElementById('ranking-subtitle').textContent = `${puzzlePeriod}周期まで / ${styleLabel}`;
+  list.innerHTML = '<p style="color:#888;text-align:center;padding:1rem;">読み込み中...</p>';
+  showScreen('screen-ranking');
+
+  let rankings;
+  try {
+    rankings = await fetchTopRankings(puzzlePeriod, puzzleStyle);
+  } catch (e) {
+    console.error(e);
+    list.innerHTML = '<p style="color:#c00;text-align:center;">読み込みに失敗しました</p>';
+    return;
+  }
+
+  list.innerHTML = '';
+  if (rankings.length === 0) {
+    list.innerHTML = '<p style="color:#888;">記録なし</p>';
+    return;
+  }
+
+  rankings.forEach((entry, i) => {
+    const isMe = !!myDocId && entry.id === myDocId;
+    const item = document.createElement('div');
+    item.className = `ranking-item${isMe ? ' my-entry' : ''}`;
+    item.innerHTML = `
+      <span class="rank-num">${i + 1}位</span>
+      <span class="rank-name">${escapeHtml(entry.name)}</span>
+      <span class="rank-time">${formatTime(entry.seconds)}</span>
+      ${isMe ? '<span class="new-record">← YOU</span>' : ''}
+    `;
+    list.appendChild(item);
+  });
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ランキング
@@ -527,27 +605,3 @@ function saveRanking(period, style, seconds) {
   localStorage.setItem(key, JSON.stringify(saved.slice(0, 10)));
 }
 
-function showRanking() {
-  const key = `ranking_${puzzlePeriod}_${puzzleStyle}`;
-  const saved = JSON.parse(localStorage.getItem(key) || '[]');
-  const list = document.getElementById('ranking-list');
-  list.innerHTML = '';
-
-  if (saved.length === 0) {
-    list.innerHTML = '<p style="color:#888;">記録なし</p>';
-  } else {
-    saved.slice(0, 3).forEach((sec, i) => {
-      const item = document.createElement('div');
-      item.className = `ranking-item ${i === 0 ? 'first' : ''}`;
-      const isNew = i === 0 && sec === puzzleSeconds;
-      item.innerHTML = `
-        ${i === 0 && isNew ? '<span class="rank-arrow">➡</span>' : '<span style="min-width:24px"></span>'}
-        <span class="rank-num">${i+1}位</span>
-        <span class="rank-time">${formatTime(sec)}</span>
-        ${isNew ? '<span class="new-record">New Record!</span>' : ''}
-      `;
-      list.appendChild(item);
-    });
-  }
-  showScreen('screen-ranking');
-}

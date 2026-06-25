@@ -33,9 +33,10 @@ body {
   align-items: center;
 }
 .menu-card {
-  background: #fff;
-  border: 2px solid #222;
-  border-radius: 20px;
+  background: url('imgs/frame.png') no-repeat center center;
+  background-size: 100% 100%;
+  border: none;
+  border-radius: 0;
   padding: 2rem 3rem;
   width: 320px;
   text-align: center;
@@ -46,9 +47,10 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0,0,0,0.12);
 }
-.menu-card-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-.menu-card-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.3rem; }
-.menu-card-desc { font-size: 0.85rem; color: #666; }
+.menu-card-icon { font-size: 2rem; margin-bottom: 0.2rem; }
+.menu-card-img { width: 3rem; height: 3rem; object-fit: contain; }
+.menu-card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; }
+.menu-card-desc { font-size: 0.85rem; color: #666; font-weight: 400; }
 
 /* --- やめるボタン --- */
 .quit-btn {
@@ -86,14 +88,15 @@ body {
 }
 .back-btn:hover { text-decoration: underline; }
 .settings-card {
-  background: #fff;
-  border: 2px solid #222;
-  border-radius: 20px;
+  background: url('imgs/frame2.png') no-repeat center center;
+  background-size: 100% 100%;
+  border: none;
+  border-radius: 0;
   padding: 2rem 3rem;
   text-align: center;
   min-width: 280px;
 }
-.settings-card h2 { font-size: 1.4rem; font-weight: 700; }
+.settings-card h2 { font-size: 1.1rem; font-weight: 600; }
 .settings-form {
   display: flex;
   flex-direction: column;
@@ -339,11 +342,41 @@ body {
   gap: 1rem;
 }
 .complete-title {
-  font-size: 3.5rem;
-  font-weight: 800;
+  font-size: 2.5rem;
+  font-weight: 600;
   color: #222;
 }
 .complete-time-label { font-size: 1rem; color: #555; }
+
+/* --- Complete画面 名前投稿 --- */
+.name-submit-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+}
+#player-name-input {
+  padding: 0.6rem 1rem;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  width: 100%;
+  max-width: 260px;
+  text-align: center;
+  outline: none;
+}
+#player-name-input:focus { border-color: #666; }
+.skip-ranking-btn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
 
 /* --- ランキング画面 --- */
 .ranking-container {
@@ -353,24 +386,32 @@ body {
   gap: 2rem;
   padding: 3rem;
 }
+#ranking-subtitle {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: 400;
+  margin-top: 0.3rem;
+}
 #ranking-list {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  min-width: 300px;
+  gap: 0.5rem;
+  min-width: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 .ranking-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  font-size: 1.1rem;
+  gap: 0.8rem;
+  font-size: 1rem;
   font-weight: 600;
 }
-.ranking-item.first { color: #222; }
-.ranking-item .rank-arrow { color: #cc0000; font-size: 1.4rem; }
-.ranking-item .new-record { color: #cc0000; font-weight: 700; margin-left: 0.5rem; }
-.ranking-item .rank-num { min-width: 40px; }
-.ranking-item .rank-time { font-family: monospace; font-size: 1.1rem; }
+.ranking-item.my-entry { background: #fff3cd; border-radius: 8px; padding: 0.2rem 0.5rem; }
+.ranking-item .new-record { color: #cc0000; font-weight: 700; }
+.ranking-item .rank-num { min-width: 40px; color: #888; font-size: 0.9rem; }
+.ranking-item .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ranking-item .rank-time { font-family: monospace; font-size: 1rem; }
 
 /* --- 神経衰弱 ヘッダー --- */
 .memory-header {
