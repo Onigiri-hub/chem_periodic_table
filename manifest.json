@@ -1,6 +1,6 @@
 {
-  "name": "元素学習ゲーム",
-  "short_name": "元素ゲーム",
+  "name": "周期表パズル",
+  "short_name": "周期表パズル",
   "description": "周期表パズルと元素神経衰弱で元素を楽しく学ぼう",
   "start_url": "./",
   "scope": "./",
