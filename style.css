@@ -484,8 +484,8 @@ body {
   inset: 0;
   z-index: 1;
   overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  touch-action: none;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -501,7 +501,7 @@ body {
 .memory-card {
   perspective: 600px;
   cursor: pointer;
-  touch-action: pan-y;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 .memory-card-inner {

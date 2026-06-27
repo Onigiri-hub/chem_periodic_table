@@ -15,6 +15,34 @@ let memoryCurrentPlayer = 0;
 let memoryHandCards = [];
 let lastMemorySettings = {};
 
+// タッチスクロール用
+let _memScrollY = 0;
+let _memScrollTop = 0;
+let _memScrolled = false;
+let _lastCardTouchTime = 0;
+let _touchScrollInit = false;
+
+function initMemoryTouchScroll() {
+  if (_touchScrollInit) return;
+  _touchScrollInit = true;
+  const wrap = document.querySelector('.memory-board-wrap');
+  if (!wrap) return;
+
+  wrap.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    _memScrollY = e.touches[0].clientY;
+    _memScrollTop = wrap.scrollTop;
+    _memScrolled = false;
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', e => {
+    if (e.touches.length !== 1) return;
+    const dy = _memScrollY - e.touches[0].clientY;
+    if (Math.abs(dy) > 8) _memScrolled = true;
+    if (_memScrolled) wrap.scrollTop = _memScrollTop + dy;
+  }, { passive: true });
+}
+
 function startMemory() {
   memoryPeriod = document.getElementById('memory-period').value;
   memoryPlayers = parseInt(document.getElementById('memory-players').value);
@@ -142,9 +170,21 @@ function buildMemoryBoard() {
     inner.appendChild(front);
     inner.appendChild(back);
     wrapper.appendChild(inner);
-    wrapper.addEventListener('click', () => onCardClick(i));
+    wrapper.addEventListener('touchend', () => {
+      if (!_memScrolled) {
+        _lastCardTouchTime = Date.now();
+        onCardClick(i);
+      }
+    });
+    wrapper.addEventListener('click', () => {
+      if (Date.now() - _lastCardTouchTime > 500) onCardClick(i);
+    });
     board.appendChild(wrapper);
   });
+
+  initMemoryTouchScroll();
+  const wrap = document.querySelector('.memory-board-wrap');
+  if (wrap) wrap.scrollTop = 0;
 }
 
 function onCardClick(idx) {
