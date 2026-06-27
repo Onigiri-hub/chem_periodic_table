@@ -477,19 +477,13 @@ body {
 #screen-memory-game {
   justify-content: flex-start;
   align-items: stretch;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
 }
 .memory-board-wrap {
-  flex: 1;
-  min-height: 0;
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 160px 110px;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  padding: 160px 110px 80px;
 }
 .memory-board {
   display: grid;
