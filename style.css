@@ -480,6 +480,12 @@ body {
   min-height: 100vh;
 }
 .memory-board-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   display: flex;
   align-items: flex-start;
   justify-content: center;
