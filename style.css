@@ -482,11 +482,12 @@ body {
 }
 .memory-board-wrap {
   flex: 1;
+  min-height: 0;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: 160px 110px;
-  overflow: auto;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
@@ -500,6 +501,8 @@ body {
 .memory-card {
   perspective: 600px;
   cursor: pointer;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
 }
 .memory-card-inner {
   position: relative;
@@ -554,7 +557,7 @@ body {
 
 /* --- タッチ操作 共通 --- */
 .menu-card, .start-btn, .dark-btn, .quit-btn, .back-btn,
-.sidebar-card, .memory-card, .pt-cell.target, .setting-row select {
+.sidebar-card, .pt-cell.target, .setting-row select {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
