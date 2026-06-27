@@ -109,7 +109,9 @@ function buildMemoryBoard() {
   const GAP  = 4;
 
   // 画面幅に収まる最大列数と、正方形レイアウトの列数を比較して小さい方を採用
-  const availW = window.innerWidth - 40;
+  const isMobile = window.innerWidth <= 680;
+  const sidePad = isMobile ? 16 : 220; // .memory-board-wrap の左右パディング合計
+  const availW = window.innerWidth - sidePad;
   const colsByWidth  = Math.max(Math.floor(availW / (CARD + GAP)), 3);
   const colsBySquare = Math.ceil(Math.sqrt(total * 1.5));
   const cols = Math.min(colsBySquare, colsByWidth);
