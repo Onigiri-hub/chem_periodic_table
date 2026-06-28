@@ -14,6 +14,13 @@ body {
 .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
 /* --- タイトル画面 --- */
+#screen-title {
+  padding-bottom: 4rem;
+}
+#screen-puzzle-settings,
+#screen-memory-settings {
+  padding-bottom: 4rem;
+}
 .title-container {
   display: flex;
   flex-direction: column;
