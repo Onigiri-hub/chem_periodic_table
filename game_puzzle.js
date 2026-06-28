@@ -288,7 +288,7 @@ function onSidebarTouchStart(e, el, card) {
 
 function activateSidebarDrag() {
   if (!sidebarTouch || sidebarTouch.phase !== 'wait') return;
-  const { el, card, curX, curY, offsetX, offsetY } = sidebarTouch;
+  const { el, card, curX, curY } = sidebarTouch;
   sidebarTouch.phase = 'drag';
 
   dragEl = el;
@@ -296,13 +296,15 @@ function activateSidebarDrag() {
   if (navigator.vibrate) navigator.vibrate(30);
 
   const rect = card.getBoundingClientRect();
+  const offsetX = curX - rect.left;
+  const offsetY = curY - rect.top;
   touchGhost = card.cloneNode(true);
   Object.assign(touchGhost.style, {
     position: 'fixed',
     width:  rect.width  + 'px',
     height: rect.height + 'px',
-    left:   (curX - offsetX) + 'px',
-    top:    (curY - offsetY) + 'px',
+    left:   rect.left + 'px',
+    top:    rect.top  + 'px',
     opacity: '0.85',
     pointerEvents: 'none',
     zIndex: '9999',

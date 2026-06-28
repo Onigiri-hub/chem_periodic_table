@@ -177,6 +177,12 @@
 <script src="game_puzzle.js"></script>
 <script src="game_memory.js"></script>
 <script>
+function updatePuzzleVH() {
+  document.documentElement.style.setProperty('--puzzle-vh', window.innerHeight + 'px');
+}
+window.addEventListener('resize', updatePuzzleVH);
+updatePuzzleVH();
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -184,6 +190,7 @@ function showScreen(id) {
   document.documentElement.style.overflow = noScroll ? 'hidden' : '';
   document.body.style.overflow = noScroll ? 'hidden' : '';
   window.scrollTo(0, 0);
+  updatePuzzleVH();
 }
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
