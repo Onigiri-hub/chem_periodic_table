@@ -178,9 +178,13 @@
 <script src="game_memory.js"></script>
 <script>
 function updatePuzzleVH() {
-  document.documentElement.style.setProperty('--puzzle-vh', window.innerHeight + 'px');
+  const h = window.visualViewport ? Math.floor(window.visualViewport.height) : window.innerHeight;
+  document.documentElement.style.setProperty('--puzzle-vh', h + 'px');
 }
 window.addEventListener('resize', updatePuzzleVH);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', updatePuzzleVH);
+}
 updatePuzzleVH();
 
 function showScreen(id) {
@@ -188,7 +192,9 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
   const noScroll = id === 'screen-puzzle-game' || id === 'screen-puzzle-complete';
   document.documentElement.style.overflow = noScroll ? 'hidden' : '';
+  document.documentElement.style.minHeight = noScroll ? '0' : '';
   document.body.style.overflow = noScroll ? 'hidden' : '';
+  document.body.style.minHeight = noScroll ? '0' : '';
   window.scrollTo(0, 0);
   updatePuzzleVH();
 }

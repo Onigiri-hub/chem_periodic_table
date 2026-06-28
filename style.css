@@ -190,6 +190,7 @@ body {
   height: var(--puzzle-vh, 100dvh);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .puzzle-main {
   flex: 1;
@@ -226,6 +227,7 @@ body {
   gap: 8px;
   border-top: 1px solid #ccc;
   z-index: 50;
+  touch-action: pan-x;
 }
 
 /* --- 周期表グリッド --- */
