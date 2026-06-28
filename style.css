@@ -587,6 +587,24 @@ body {
   }
 }
 
+/* --- 横向きモバイル: 縦が短い画面でスクロール可能に --- */
+@media (max-height: 500px) {
+  #screen-title.screen.active,
+  #screen-puzzle-settings.screen.active,
+  #screen-memory-settings.screen.active,
+  #screen-ranking.screen.active {
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  #screen-title .title-container,
+  #screen-puzzle-settings .settings-container,
+  #screen-memory-settings .settings-container {
+    transform: none;
+  }
+}
+
 /* --- スマホ対応 --- */
 @media (max-width: 680px) {
   /* パズルゲーム: モバイル調整 */
