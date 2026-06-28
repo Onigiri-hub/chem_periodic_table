@@ -58,6 +58,7 @@ body {
 .menu-card-img { width: 3rem; height: 3rem; object-fit: contain; }
 .menu-card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; }
 .menu-card-desc { font-size: 0.85rem; color: #666; font-weight: 400; }
+.copyright { font-size: 0.72rem; color: #aaa; font-weight: 400; margin-top: 0.5rem; }
 
 /* --- やめるボタン --- */
 .quit-btn {
