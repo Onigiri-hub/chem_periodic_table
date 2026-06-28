@@ -178,6 +178,8 @@ body {
   align-items: stretch;
   padding: 0;
   position: relative;
+  min-height: 0;
+  height: var(--puzzle-vh, 100dvh);
 }
 .puzzle-game-layout {
   position: fixed;
