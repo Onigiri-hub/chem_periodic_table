@@ -182,6 +182,7 @@ body {
 .puzzle-game-layout {
   position: fixed;
   inset: 0;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
@@ -190,7 +191,7 @@ body {
   min-height: 0;
   overflow-x: auto;
   overflow-y: auto;
-  padding: 8rem 3rem 116px;
+  padding: 8rem 3rem 1rem;
   overscroll-behavior: contain;
   touch-action: pan-x pan-y;
 }
@@ -207,10 +208,7 @@ body {
   align-items: center;
 }
 .puzzle-sidebar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  flex-shrink: 0;
   width: 100%;
   height: 114px;
   min-height: 114px;
@@ -585,7 +583,7 @@ body {
 @media (max-width: 680px) {
   /* パズルゲーム: モバイル調整 */
   .puzzle-main {
-    padding: 7rem 2rem 116px;
+    padding: 7rem 2rem 1rem;
   }
   /* 神経衰弱ボードのパディング縮小 */
   .memory-board-wrap {
