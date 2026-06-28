@@ -1,13 +1,17 @@
-const CACHE = 'genso-v1';
-const ASSETS = [
+const CACHE = 'genso-v2';
+
+const CORE_ASSETS = [
   './',
   './index.html',
   './style.css',
   './game_puzzle.js',
   './game_memory.js',
   './data_elements.js',
-  './sounds/cards.mp3',
   './manifest.json',
+];
+
+const STATIC_ASSETS = [
+  './sounds/cards.mp3',
   './icons/icon-192.png',
   './icons/icon-512.png',
 ];
@@ -15,7 +19,7 @@ const ASSETS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(ASSETS))
+      .then(c => c.addAll([...CORE_ASSETS, ...STATIC_ASSETS]))
       .then(() => self.skipWaiting())
   );
 });
@@ -31,22 +35,39 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // 外部リソース（Google Fonts等）はネットワーク優先・失敗時はキャッシュ
+  // 外部リソース (Google Fonts等): ネットワーク優先、失敗時はキャッシュ
   if (!e.request.url.startsWith(self.location.origin)) {
     e.respondWith(
       fetch(e.request).catch(() => caches.match(e.request))
     );
     return;
   }
-  // 同一オリジン: キャッシュ優先・なければネットワークから取得してキャッシュ
+
+  const pathname = new URL(e.request.url).pathname;
+
+  // 静的アセット (icons, sounds, imgs): キャッシュ優先
+  if (pathname.includes('/sounds/') || pathname.includes('/icons/') || pathname.includes('/imgs/')) {
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request))
+    );
+    return;
+  }
+
+  // コアファイル (HTML/CSS/JS): Stale-While-Revalidate
+  // → キャッシュをすぐ返しつつ、バックグラウンドで最新版を取得してキャッシュ更新
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return res;
-      });
-    })
+    caches.open(CACHE).then(cache =>
+      cache.match(e.request).then(cached => {
+        const fetchPromise = fetch(e.request).then(res => {
+          cache.put(e.request, res.clone());
+          return res;
+        });
+        if (cached) {
+          fetchPromise.catch(() => {});
+          return cached;
+        }
+        return fetchPromise;
+      })
+    )
   );
 });
