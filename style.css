@@ -573,7 +573,12 @@ body {
 }
 
 /* --- レスポンシブ対応 (タブレット) --- */
-@media (max-width: 900px) {
+@media (min-width: 681px) and (max-width: 1200px) {
+  #screen-title,
+  #screen-puzzle-settings,
+  #screen-memory-settings {
+    padding-bottom: 14rem;
+  }
 }
 
 /* --- スマホ対応 --- */
