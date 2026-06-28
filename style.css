@@ -15,11 +15,11 @@ body {
 
 /* --- タイトル画面 --- */
 #screen-title {
-  padding-bottom: 4rem;
+  padding-bottom: 8rem;
 }
 #screen-puzzle-settings,
 #screen-memory-settings {
-  padding-bottom: 4rem;
+  padding-bottom: 8rem;
 }
 .title-container {
   display: flex;
