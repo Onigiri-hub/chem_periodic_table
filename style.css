@@ -14,18 +14,17 @@ body {
 .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
 /* --- タイトル画面 --- */
-#screen-title .title-container {
-  transform: translateY(-4rem);
-}
+#screen-title .title-container,
 #screen-puzzle-settings .settings-container,
 #screen-memory-settings .settings-container {
-  transform: translateY(-4rem);
+  padding-bottom: 8rem;
 }
 .title-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3rem;
+  margin-block: auto;
 }
 .app-title {
   font-size: 2rem;
@@ -86,6 +85,7 @@ body {
   gap: 2rem;
   width: 100%;
   padding: 2rem;
+  margin-block: auto;
 }
 .back-btn {
   align-self: flex-start;
@@ -583,25 +583,7 @@ body {
   #screen-title .title-container,
   #screen-puzzle-settings .settings-container,
   #screen-memory-settings .settings-container {
-    transform: translateY(-7rem);
-  }
-}
-
-/* --- 横向きモバイル: 縦が短い画面でスクロール可能に --- */
-@media (max-height: 500px) {
-  #screen-title.screen.active,
-  #screen-puzzle-settings.screen.active,
-  #screen-memory-settings.screen.active,
-  #screen-ranking.screen.active {
-    justify-content: flex-start;
-    overflow-y: auto;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-  }
-  #screen-title .title-container,
-  #screen-puzzle-settings .settings-container,
-  #screen-memory-settings .settings-container {
-    transform: none;
+    padding-bottom: 14rem;
   }
 }
 

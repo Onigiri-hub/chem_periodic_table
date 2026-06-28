@@ -1,4 +1,4 @@
-const CACHE = 'genso-v3';
+const CACHE = 'genso-v4';
 
 const CORE_ASSETS = [
   './',
