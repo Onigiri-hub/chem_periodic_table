@@ -14,12 +14,12 @@ body {
 .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
 /* --- タイトル画面 --- */
-#screen-title {
-  padding-bottom: 8rem;
+#screen-title .title-container {
+  transform: translateY(-4rem);
 }
-#screen-puzzle-settings,
-#screen-memory-settings {
-  padding-bottom: 8rem;
+#screen-puzzle-settings .settings-container,
+#screen-memory-settings .settings-container {
+  transform: translateY(-4rem);
 }
 .title-container {
   display: flex;
@@ -574,10 +574,10 @@ body {
 
 /* --- レスポンシブ対応 (タブレット) --- */
 @media (min-width: 681px) and (max-width: 1200px) {
-  #screen-title,
-  #screen-puzzle-settings,
-  #screen-memory-settings {
-    padding-bottom: 14rem;
+  #screen-title .title-container,
+  #screen-puzzle-settings .settings-container,
+  #screen-memory-settings .settings-container {
+    transform: translateY(-7rem);
   }
 }
 
